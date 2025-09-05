@@ -137,70 +137,633 @@ def display_metrics(metrics_df):
 
 # Set page configuration
 st.set_page_config(
-    page_title="KaliYuNee Dashboard",
+    page_title="Aegis Alliance Dashboard",
+    page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Add custom CSS
+# Add custom CSS for dark theme
 st.markdown("""
 <style>
+    /* Global styles and dark theme */
+    :root {
+        --background-color: #0B0F19;
+        --secondary-bg: #1A1F2C;
+        --accent-color: #6E56CF;
+        --text-color: #E1E7EF;
+        --secondary-text: #9BA1AC;
+        --highlight-color: #FF4A6B;
+        --success-color: #3ECF8E;
+        --warning-color: #FFB020;
+        --chart-grid: #2D3748;
+        --border-color: #2A3140;
+        --card-bg: #141824;
+    }
+    
+    /* Override Streamlit's default styling */
+    .reportview-container {
+        background-color: var(--background-color);
+        color: var(--text-color);
+    }
+    
+    .main .block-container {
+        background-color: var(--background-color);
+        padding-top: 2rem;
+    }
+    
+    /* Header styles */
     .main-header {
         font-size: 2.5rem;
-        color: #1E3A8A;
+        font-weight: 700;
+        color: var(--text-color);
         text-align: center;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
+        text-shadow: 0px 2px 4px rgba(0,0,0,0.3);
+        background: linear-gradient(to right, var(--accent-color), var(--highlight-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
+    
     .sub-header {
-        font-size: 1.5rem;
-        color: #1E3A8A;
-        margin-top: 2rem;
-        margin-bottom: 1rem;
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-top: 2.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid var(--accent-color);
+        padding-left: 0.75rem;
     }
+    
+    /* Metric containers */
     .metric-container {
-        background-color: #f0f2f6;
-        border-radius: 5px;
-        padding: 1rem;
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.25rem;
         text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
+    
+    .metric-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    
     .metric-value {
-        font-size: 2rem;
-        font-weight: bold;
-        color: #1E3A8A;
+        font-size: 2.25rem;
+        font-weight: 700;
+        background: linear-gradient(to right, var(--accent-color), var(--highlight-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
     }
+    
     .metric-label {
         font-size: 1rem;
-        color: #4B5563;
+        color: var(--secondary-text);
+        font-weight: 500;
     }
+    
+    /* Card styles */
+    .card {
+        background-color: var(--card-bg);
+        border-radius: 8px;
+        padding: 1.5rem;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        margin-bottom: 1.5rem;
+    }
+    
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.5rem;
+    }
+    
+    /* Table styling */
+    .dataframe {
+        background-color: var(--secondary-bg) !important;
+        color: var(--text-color) !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        border: 1px solid var(--border-color) !important;
+    }
+    
+    .dataframe th {
+        background-color: var(--card-bg) !important;
+        color: var(--text-color) !important;
+        padding: 0.75rem !important;
+        border-bottom: 1px solid var(--border-color) !important;
+    }
+    
+    .dataframe td {
+        background-color: var(--secondary-bg) !important;
+        color: var(--secondary-text) !important;
+        padding: 0.75rem !important;
+        border-bottom: 1px solid var(--border-color) !important;
+    }
+    
+    /* Alert styles */
+    .stAlert {
+        background-color: var(--card-bg) !important;
+        color: var(--text-color) !important;
+        border-radius: 8px !important;
+        padding: 1rem !important;
+        border-left-width: 8px !important;
+    }
+    
+    /* Sidebar styling */
+    .css-1d391kg {
+        background-color: var(--secondary-bg) !important;
+    }
+    
+    .css-1v3fvcr {
+        background-color: var(--secondary-bg) !important;
+    }
+    
+    .css-qbe2hs {
+        color: var(--text-color) !important;
+    }
+    
+    /* Button styling */
+    .stButton > button {
+        background-color: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton > button:hover {
+        background-color: #5A46AE;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        transform: translateY(-2px);
+    }
+    
+    /* Slider styling */
+    .stSlider > div > div {
+        background-color: var(--border-color) !important;
+    }
+    
+    .stSlider > div > div > div > div {
+        background-color: var(--accent-color) !important;
+    }
+    
+    /* Graph styling - ensure dark theme for all charts */
+    .js-plotly-plot .plotly .bg {
+        fill: var(--card-bg) !important;
+    }
+    
+    .js-plotly-plot .plotly .xaxis line, .js-plotly-plot .plotly .yaxis line {
+        stroke: var(--secondary-text) !important;
+    }
+    
+    .js-plotly-plot .plotly .xaxis path, .js-plotly-plot .plotly .yaxis path {
+        stroke: var(--secondary-text) !important;
+    }
+    
+    .js-plotly-plot .plotly .xtick text, .js-plotly-plot .plotly .ytick text {
+        fill: var(--secondary-text) !important;
+    }
+    
+    /* Custom badge/tag styles */
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+    
+    .badge-success {
+        background-color: rgba(62, 207, 142, 0.2);
+        color: var(--success-color);
+        border: 1px solid var(--success-color);
+    }
+    
+    .badge-warning {
+        background-color: rgba(255, 176, 32, 0.2);
+        color: var(--warning-color);
+        border: 1px solid var(--warning-color);
+    }
+    
+    .badge-danger {
+        background-color: rgba(255, 74, 107, 0.2);
+        color: var(--highlight-color);
+        border: 1px solid var(--highlight-color);
+    }
+    
+    .badge-info {
+        background-color: rgba(110, 86, 207, 0.2);
+        color: var(--accent-color);
+        border: 1px solid var(--accent-color);
+    }
+    
+    /* Customize scrollbar */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: var(--background-color);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 5px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--accent-color);
+    }
+    
+    /* Custom animations for elements */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+    
+    /* Pulsing effect for important metrics */
+    /* Enhanced styling for dashboard sections */
+    .dashboard-header {
+        padding: 1.5rem 0;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #2A3140;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #E1E7EF;
+        background: linear-gradient(90deg, #6E56CF, #EC4899);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .dashboard-header p {
+        font-size: 1rem;
+        color: #9BA1AC;
+        max-width: 700px;
+    }
+    
+    .section-title {
+        display: flex;
+        align-items: center;
+        margin: 2rem 0 1rem 0;
+    }
+    
+    .section-title h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #E1E7EF;
+        margin: 0;
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 0.375rem;
+        margin-left: 0.75rem;
+    }
+    
+    .badge-primary {
+        background-color: rgba(110, 86, 207, 0.15);
+        color: #6E56CF;
+    }
+    
+    .badge-secondary {
+        background-color: rgba(37, 99, 235, 0.15);
+        color: #2563EB;
+    }
+    
+    .badge-info {
+        background-color: rgba(6, 182, 212, 0.15);
+        color: #06B6D4;
+    }
+    
+    .badge-success {
+        background-color: rgba(62, 207, 142, 0.15);
+        color: #3ECF8E;
+    }
+    
+    .metric-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .metric-card {
+        background-color: #1A1E2E;
+        border-radius: 8px;
+        padding: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #2A3140;
+        height: 100%;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border-color: #3F4A6B;
+    }
+    
+    .metric-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+    
+    .metric-content {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .metric-label {
+        font-size: 0.875rem;
+        color: #9BA1AC;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #E1E7EF;
+        margin-bottom: 0.5rem;
+    }
+    
+    .metric-delta {
+        font-size: 0.75rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+    
+    .metric-delta.positive {
+        color: #3ECF8E;
+    }
+    
+    .metric-delta.negative {
+        color: #EF4444;
+    }
+    
+    .metric-delta.neutral {
+        color: #F59E0B;
+    }
+    
+    .chart-card {
+        background-color: #1A1E2E;
+        border-radius: 8px;
+        padding: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        margin-bottom: 1.5rem;
+        border: 1px solid #2A3140;
+    }
+    
+    .chart-header {
+        margin-bottom: 1rem;
+    }
+    
+    .chart-header h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #E1E7EF;
+        margin: 0;
+    }
+    
+    .activity-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        padding: 1rem;
+        background-color: #1A1E2E;
+        border-radius: 8px;
+        border: 1px solid #2A3140;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 0.75rem;
+        border-radius: 6px;
+        background-color: #20273C;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: transform 0.15s;
+    }
+    
+    .activity-item:hover {
+        transform: translateX(3px);
+        background-color: #242E45;
+    }
+    
+    .activity-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        font-size: 1rem;
+    }
+    
+    .activity-content {
+        flex: 1;
+    }
+    
+    .activity-text {
+        font-size: 0.875rem;
+        color: #E1E7EF;
+        margin-bottom: 0.25rem;
+    }
+    
+    .activity-time {
+        font-size: 0.75rem;
+        color: #9BA1AC;
+    }
+    
+    .architecture-container {
+        background-color: #1A1E2E;
+        border-radius: 8px;
+        padding: 1.5rem;
+        border: 1px solid #2A3140;
+        margin-top: 1rem;
+    }
+    
+    .status-card {
+        background-color: #1A1E2E;
+        border-radius: 8px;
+        padding: 1.25rem;
+        border: 1px solid #2A3140;
+        display: flex;
+        align-items: flex-start;
+        margin-top: 1rem;
+    }
+    
+    .status-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: rgba(62, 207, 142, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+    }
+    
+    .status-content {
+        flex: 1;
+    }
+    
+    .status-content p {
+        color: #9BA1AC;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+    
     .highlight {
-        background-color: #FFEDD5;
-        padding: 0.2rem;
-        border-radius: 3px;
+        color: #E1E7EF;
+        font-weight: 600;
+    }
+    
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(62, 207, 142, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(62, 207, 142, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(62, 207, 142, 0); }
+    }
+    
+    .pulse {
+        animation: pulse 2s infinite;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ======= SIDEBAR =======
-st.sidebar.image("./logo/AegisAllianceLogo4.png", width=250)
-st.sidebar.title("KaliYuNee Aegis Alliance")
-st.sidebar.markdown("### Trust & Transparency Dashboard")
+# Custom sidebar header with logo
+logo_col, text_col = st.sidebar.columns([1, 3])
 
-# Dashboard sections
-sections = ["Overview", "Model Performance", "Privacy Metrics", "Audit Log", "Federation Status"]
-selected_section = st.sidebar.radio("Navigation", sections)
+# Display logo in a container with custom styling
+with logo_col:
+    st.image("logo/AegisAllianceLogo4.png", width=80)
 
-# Epsilon (privacy budget) slider for simulation
-epsilon = st.sidebar.slider("Privacy Budget (ε)", min_value=0.1, max_value=10.0, value=1.0, step=0.1, 
-                           help="Lower ε means more privacy but potentially lower accuracy")
+# Display text in second column
+with text_col:
+    st.markdown("""
+    <div>
+        <h1 style="margin: 0; padding: 0; color: #E1E7EF; font-size: 1.5rem; font-weight: 700;">Aegis Alliance</h1>
+        <p style="margin: 0; padding: 0; color: #9BA1AC; font-size: 0.9rem;">Trust & Transparency</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-# Bank federation selector
+# Add separator
+st.sidebar.markdown("<hr style='margin: 1rem 0; border: none; border-top: 1px solid #2A3140;'>", unsafe_allow_html=True)
+
+# Dashboard sections with icons
+st.sidebar.markdown("### Navigation")
+sections = {
+    "Overview": "",
+    "Model Performance": "",
+    "Privacy Metrics": "",
+    "Audit Log": "",
+    "Federation Status": ""
+}
+
+# Create radio buttons with custom styling
+selected_section = st.sidebar.radio(
+    "Navigation",
+    list(sections.keys()),
+    format_func=lambda x: f"{sections[x]} {x}",
+    label_visibility="collapsed"
+)
+
+st.sidebar.markdown("<hr style='margin: 1.5rem 0; border: none; border-top: 1px solid #2A3140;'>", unsafe_allow_html=True)
+
+# Controls section
+st.sidebar.markdown("### Controls")
+
+# Epsilon slider with custom styling
+st.sidebar.markdown("""
+<div style="margin-bottom: 0.5rem;">
+    <label style="font-size: 0.9rem; color: #9BA1AC; font-weight: 500;">Privacy Budget (ε)</label>
+    <div class="badge badge-info" style="float: right; margin-top: -5px;">Configuration</div>
+</div>
+""", unsafe_allow_html=True)
+
+epsilon = st.sidebar.slider("Privacy Budget", min_value=0.1, max_value=10.0, value=1.0, step=0.1, 
+                          help="Lower ε means more privacy but potentially lower accuracy",
+                          label_visibility="collapsed")
+
+# Display current epsilon value with custom styling
+st.sidebar.markdown(f"""
+<div style="text-align: center; padding: 0.5rem; background-color: rgba(110, 86, 207, 0.1); border-radius: 8px; margin-bottom: 1rem;">
+    <span style="font-size: 1.2rem; font-weight: 600; color: #6E56CF;">ε = {epsilon:.1f}</span>
+</div>
+""", unsafe_allow_html=True)
+
+# Bank federation selector with custom styling
+st.sidebar.markdown("""
+<div style="margin-bottom: 0.5rem; margin-top: 1rem;">
+    <label style="font-size: 0.9rem; color: #9BA1AC; font-weight: 500;">Select Bank</label>
+</div>
+""", unsafe_allow_html=True)
+
 banks = ["Bank A", "Bank B", "Bank C", "All Banks"]
-selected_bank = st.sidebar.selectbox("Select Bank", banks)
+selected_bank = st.sidebar.selectbox("Select Bank", banks, label_visibility="collapsed")
 
-# Time period selector
+# Time period selector with custom styling
+st.sidebar.markdown("""
+<div style="margin-bottom: 0.5rem; margin-top: 1rem;">
+    <label style="font-size: 0.9rem; color: #9BA1AC; font-weight: 500;">Time Period</label>
+</div>
+""", unsafe_allow_html=True)
+
 time_periods = ["Last 24 hours", "Last 7 days", "Last 30 days", "All time"]
-selected_period = st.sidebar.selectbox("Time Period", time_periods)
+selected_period = st.sidebar.selectbox("Time Period", time_periods, label_visibility="collapsed")
 
+# System status indicator
+st.sidebar.markdown("<hr style='margin: 1.5rem 0; border: none; border-top: 1px solid #2A3140;'>", unsafe_allow_html=True)
+st.sidebar.markdown("""
+<div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+    <div style="width: 12px; height: 12px; border-radius: 50%; background-color: #3ECF8E; margin-right: 8px;"></div>
+    <span style="color: #E1E7EF; font-size: 0.9rem; font-weight: 500;">System Online</span>
+    <div style="margin-left: auto; font-size: 0.8rem; color: #9BA1AC;">v1.0.2</div>
+</div>
+""", unsafe_allow_html=True)
+
+# Add last updated timestamp
+import datetime
+current_time = datetime.datetime.now().strftime("%b %d, %Y %H:%M")
+st.sidebar.markdown(f"""
+<div style="font-size: 0.8rem; color: #9BA1AC; text-align: center; margin-top: 2rem;">
+    Last updated: {current_time}
+</div>
+""", unsafe_allow_html=True)
 # ======= HELPER FUNCTIONS =======
 @st.cache_data
 def generate_sample_data(epsilon):
@@ -408,46 +971,194 @@ def generate_federation_progress_fallback():
 
 # ======= MAIN CONTENT =======
 if selected_section == "Overview":
-    st.markdown("<h1 class='main-header'>KaliYuNee: Aegis Alliance - Trust & Transparency Layer</h1>", unsafe_allow_html=True)
+    # Page header with title and description
+    st.markdown("""
+    <div class="dashboard-header">
+        <h1>Aegis Alliance Dashboard</h1>
+        <p>Trust & Transparency Layer: Real-time insights into system performance, privacy, and federation status</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # KPI metrics row
-    col1, col2, col3 = st.columns(3)
+    # Overview metrics with enhanced styling
+    st.markdown("""
+    <div class="metric-container">
+        <div class="metric-row">
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    # Custom styled metrics
+    with col1:
+        st.markdown("""
+        <div class="metric-card">
+            <div class="metric-icon" style="background-color: rgba(62, 207, 142, 0.2);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 16L10.879 13.121C11.3395 12.6605 12.0875 12.62 12.5979 13.0229L13.5 13.75L18 10" stroke="#3ECF8E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#3ECF8E" stroke-width="2"/>
+                </svg>
+            </div>
+            <div class="metric-content">
+                <div class="metric-label">Transactions Processed</div>
+                <div class="metric-value">12,456</div>
+                <div class="metric-delta positive">+845 today</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div class="metric-card">
+            <div class="metric-icon" style="background-color: rgba(110, 86, 207, 0.2);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 21H4.6C4.03995 21 3.75992 21 3.54601 20.891C3.35785 20.7951 3.20487 20.6422 3.10899 20.454C3 20.2401 3 19.9601 3 19.4V3" stroke="#6E56CF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7 14.5L11.2929 10.2071C11.6834 9.81658 12.3166 9.81658 12.7071 10.2071L14.5 12L17.5 9" stroke="#6E56CF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="metric-content">
+                <div class="metric-label">Fraud Detection Rate</div>
+                <div class="metric-value">89.2%</div>
+                <div class="metric-delta positive">+1.3% vs. last week</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-icon" style="background-color: rgba(236, 72, 153, 0.2);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#EC4899" stroke-width="2"/>
+                    <path d="M12 8V12L15 15" stroke="#EC4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="metric-content">
+                <div class="metric-label">Privacy Budget (ε)</div>
+                <div class="metric-value">{epsilon:.1f}</div>
+                <div class="metric-delta neutral">Currently active</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown("""
+        <div class="metric-card">
+            <div class="metric-icon" style="background-color: rgba(37, 99, 235, 0.2);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 12H22" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="metric-content">
+                <div class="metric-label">ZK Proof Verification</div>
+                <div class="metric-value">99.7%</div>
+                <div class="metric-delta positive">+0.2% vs. last week</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("""
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Overview charts with enhanced card styling
+    st.markdown("""
+    <div class="section-title">
+        <h2>Performance vs. Privacy Trade-off</h2>
+        <div class="badge badge-primary">Real-time Analysis</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Generate dummy data for demonstration
+    epsilons = [0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+    accuracies = [0.82, 0.86, 0.89, 0.92, 0.94, 0.95]
+    privacy_loss = [0.1, 0.3, 0.5, 0.7, 0.85, 0.95]
+    
+    # Create a two-panel chart with enhanced styling
+    col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.markdown("<p class='metric-value'>89.2%</p>", unsafe_allow_html=True)
-        st.markdown("<p class='metric-label'>Fraud Detection Rate</p>", unsafe_allow_html=True)
+        st.markdown("""
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3>Accuracy vs. Privacy Budget</h3>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        chart_data = pd.DataFrame({
+            'Privacy Budget (ε)': epsilons,
+            'Model Accuracy': accuracies
+        })
+        
+        chart = alt.Chart(chart_data).mark_line(
+            point=True,
+            color='#6E56CF',
+            strokeWidth=3
+        ).encode(
+            x=alt.X('Privacy Budget (ε)', title='Privacy Budget (ε)'),
+            y=alt.Y('Model Accuracy', scale=alt.Scale(domain=[0.80, 1.0]), title='Model Accuracy'),
+            tooltip=['Privacy Budget (ε)', 'Model Accuracy']
+        ).properties(
+            height=250
+        )
+        
+        st.altair_chart(chart, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
     
     with col2:
-        st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.markdown("<p class='metric-value'>ε = {:.1f}</p>".format(epsilon), unsafe_allow_html=True)
-        st.markdown("<p class='metric-label'>Privacy Budget</p>", unsafe_allow_html=True)
+        st.markdown("""
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3>Privacy Loss vs. Privacy Budget</h3>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        chart_data = pd.DataFrame({
+            'Privacy Budget (ε)': epsilons,
+            'Privacy Loss': privacy_loss
+        })
+        
+        chart = alt.Chart(chart_data).mark_line(
+            point=True,
+            color='#EC4899',
+            strokeWidth=3
+        ).encode(
+            x=alt.X('Privacy Budget (ε)', title='Privacy Budget (ε)'),
+            y=alt.Y('Privacy Loss', scale=alt.Scale(domain=[0, 1.0]), title='Privacy Loss'),
+            tooltip=['Privacy Budget (ε)', 'Privacy Loss']
+        ).properties(
+            height=250
+        )
+        
+        st.altair_chart(chart, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
     
-    with col3:
-        st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.markdown("<p class='metric-value'>99.7%</p>", unsafe_allow_html=True)
-        st.markdown("<p class='metric-label'>ZK Proof Verification Rate</p>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-    
-    # System architecture diagram
-    st.markdown("<h2 class='sub-header'>System Architecture</h2>", unsafe_allow_html=True)
+    # System architecture diagram with enhanced styling
+    st.markdown("""
+    <div class="section-title">
+        <h2>System Architecture</h2>
+        <div class="badge badge-secondary">System Design</div>
+    </div>
+    <div class="architecture-container">
+    """, unsafe_allow_html=True)
     
     # Placeholder for architecture diagram
     architecture = """
     digraph G {
         rankdir=LR;
-        node [shape=box, style=filled, color=lightblue];
+        bgcolor="transparent";
+        node [shape=box, style=filled, color="#2A3140", fontcolor="#E1E7EF", fontname="Arial"];
+        edge [color="#6E56CF", penwidth=1.5];
         
         Bank1 [label="Bank A Data"];
         Bank2 [label="Bank B Data"];
         Bank3 [label="Bank C Data"];
         
-        Oracle [label="Oracle Engine\n(XGBoost)"];
-        Adaptive [label="Adaptive Intervention\n(Policy Engine)"];
-        Federated [label="Zero-Knowledge Fabric\n(Federated Learning)"];
-        Trust [label="Trust & Transparency\n(Audit & Verification)"];
+        Oracle [label="Oracle Engine\\n(XGBoost)", color="#1F2937"];
+        Adaptive [label="Adaptive Intervention\\n(Policy Engine)", color="#1F2937"];
+        Federated [label="Zero-Knowledge Fabric\\n(Federated Learning)", color="#1F2937"];
+        Trust [label="Trust & Transparency\\n(Audit & Verification)", color="#1F2937"];
         
         {Bank1, Bank2, Bank3} -> Federated;
         Federated -> Oracle;
@@ -457,10 +1168,69 @@ if selected_section == "Overview":
     """
     
     st.graphviz_chart(architecture)
+    st.markdown("</div>", unsafe_allow_html=True)
     
-    # Current status
-    st.markdown("<h2 class='sub-header'>System Status</h2>", unsafe_allow_html=True)
-    st.info(f"The Aegis Alliance is currently using a privacy budget of ε = {epsilon}. The system is fully operational with all 3 banks participating in the federation.")
+    # Recent activity with enhanced styling
+    st.markdown("""
+    <div class="section-title">
+        <h2>Recent Activity</h2>
+        <div class="badge badge-info">Live Updates</div>
+    </div>
+    <div class="activity-timeline">
+    """, unsafe_allow_html=True)
+    
+    # Dummy activity data
+    activities = [
+        {"time": "2 mins ago", "activity": "Bank A completed model training", "type": "training", "icon": "🔄"},
+        {"time": "15 mins ago", "activity": "New transactions processed: 145", "type": "transaction", "icon": "💼"},
+        {"time": "1 hour ago", "activity": "Privacy budget updated to ε=1.2", "type": "config", "icon": "⚙️"},
+        {"time": "3 hours ago", "activity": "Bank C joined the federation", "type": "federation", "icon": "🏦"},
+        {"time": "5 hours ago", "activity": "System audit completed", "type": "audit", "icon": "📋"}
+    ]
+    
+    for activity in activities:
+        # Different formatting based on activity type
+        icon_colors = {
+            "training": "#6E56CF",
+            "transaction": "#3ECF8E",
+            "config": "#F59E0B",
+            "federation": "#2563EB",
+            "audit": "#EC4899"
+        }
+        
+        st.markdown(f"""
+        <div class="activity-item">
+            <div class="activity-icon" style="background-color: {icon_colors[activity['type']]};">
+                {activity['icon']}
+            </div>
+            <div class="activity-content">
+                <div class="activity-text">{activity['activity']}</div>
+                <div class="activity-time">{activity['time']}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    # System status with enhanced styling
+    st.markdown("""
+    <div class="section-title">
+        <h2>System Status</h2>
+        <div class="badge badge-success">Operational</div>
+    </div>
+    <div class="status-card">
+        <div class="status-icon pulse">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#3ECF8E" stroke-width="2"/>
+                <path d="M12 8V12" stroke="#3ECF8E" stroke-width="2" stroke-linecap="round"/>
+                <path d="M12 16H12.01" stroke="#3ECF8E" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="status-content">
+            <p>The Aegis Alliance is currently using a privacy budget of <span class="highlight">ε = {epsilon:.1f}</span>. The system is fully operational with all 3 banks participating in the federation. All privacy guarantees are being maintained while achieving optimal model performance.</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 elif selected_section == "Model Performance":
     st.markdown("<h1 class='main-header'>Model Performance</h1>", unsafe_allow_html=True)
@@ -710,7 +1480,7 @@ elif selected_section == "Audit Log":
     
     # Format the dataframe for display
     display_log = audit_log.copy()
-    display_log["Amount"] = display_log["Amount"].map("${:.2f}".format)
+    display_log["Amount"] = display_log["Amount"].map("{:.2f} ฿".format)
     display_log["Fraud Score"] = display_log["Fraud Score"].map("{:.3f}".format)
     
     # Add color highlighting based on verification status
